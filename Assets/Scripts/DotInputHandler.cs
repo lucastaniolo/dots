@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -17,7 +18,7 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     private int colorId;
 
     private GameObject current;
-    
+
     public void OnDrag(PointerEventData eventData)
     {
         if (!eventData.dragging || !eventData.pointerEnter) return;
@@ -26,28 +27,38 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             if (selectedDots.Contains(dot))
             {
-                selectedDots.Remove(dot);
-                DotUnselectedEvent?.Invoke(dot);
+                //TODO Disconnection
+                // selectedDots.Remove(dot);
+                // DotUnselectedEvent?.Invoke(dot);
             }
             else
             {
-                if (current == dot.gameObject) return;
+                // if (current == dot.gameObject) return;
                 
+                //Connection Rules
                 if (selectedDots.Count == 0)
+                {
                     colorId = dot.Data.ColorData.ColorId;
+                    Select();
+                }
+                else if (dot.Data.ColorData.ColorId == colorId && 
+                         dot.Data.GridIndex.IsAdjacent(selectedDots.Last().Data.GridIndex))
+                {
+                    Select();
+                }
 
-                if (dot.Data.ColorData.ColorId != colorId) return;
-                
-                print($"selecting color {dot.Data.ColorData.ColorId} | count {selectedDots.Count}");
-                selectedDots.Add(dot);
-                DotSelectedEvent?.Invoke(dot);
+                void Select()
+                {
+                    selectedDots.Add(dot);
+                    DotSelectedEvent?.Invoke(dot);
+                }
             }
         }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        print("begin end");
+        print("begin drag");
 
         inputCollider.transform.position += Vector3.forward;
         SelectionStartedEvent?.Invoke();
@@ -55,7 +66,7 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        print("drag end");
+        print("end drag");
         inputCollider.transform.position -= Vector3.forward;
         SelectionEndedEvent?.Invoke(selectedDots);
         selectedDots.Clear();
