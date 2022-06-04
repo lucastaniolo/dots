@@ -78,8 +78,9 @@ public class DotGrid : MonoBehaviour
                     Dots[x, i].SnapToGridPosition();
                     break;
                 }
-
-                Dots[x, y].Reuse();
+                
+                if (!Dots[x, y].IsActive)
+                    Dots[x, y].Reuse();
             }
         }
     }
