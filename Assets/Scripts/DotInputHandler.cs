@@ -7,11 +7,13 @@ using UnityEngine.EventSystems;
 public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private BoxCollider2D inputCollider;
+    [SerializeField] private float dragThreshold;
 
     public event Action SelectionStartedEvent;
     public event Action<List<Dot>> SelectionEndedEvent;
     public event Action<Dot> DotSelectedEvent;
     public event Action<Dot> DotUnselectedEvent;
+    public event Action<int, Vector2> SelectionDraggingEvent;
 
     private readonly List<Dot> selectedDots = new();
 
@@ -23,6 +25,17 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         if (!eventData.dragging || !eventData.pointerEnter) return;
 
+        if (selectedDots.Count > 0)
+        {
+            //TODO Disconnection
+            // selectedDots.Remove(dot);
+            // DotUnselectedEvent?.Invoke(dot);
+            
+            var worldPos = Camera.main.ScreenToWorldPoint(eventData.position);
+            if (Vector2.Distance(selectedDots.Last().Data.GridPosition, worldPos) > dragThreshold)
+                SelectionDraggingEvent?.Invoke(selectedDots.Count, worldPos);
+        }
+        
         if (eventData.pointerEnter.TryGetComponent<Dot>(out var dot))
         {
             if (selectedDots.Contains(dot))
@@ -55,6 +68,8 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             }
         }
     }
+
+   
 
     public void OnBeginDrag(PointerEventData eventData)
     {
