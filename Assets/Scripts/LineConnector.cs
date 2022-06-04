@@ -1,11 +1,10 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class LineConnector : MonoBehaviour
 {
     [SerializeField] private LineRenderer lineRenderer;
+    [SerializeField] private LineRenderer dragLineRenderer;
     [SerializeField] private DotInputHandler inputHandler;
     
     private void OnEnable()
@@ -26,29 +25,30 @@ public class LineConnector : MonoBehaviour
     {
         lineRenderer.startColor = color;
         lineRenderer.endColor = color;
+        dragLineRenderer.startColor = color;
+        dragLineRenderer.endColor = color;
     }
 
     private void AddLinePoint(Dot dot)
     {
         if (lineRenderer.positionCount == 0)
         {
-            lineRenderer.positionCount++;
             SetColor(dot.Data.ColorData.Color);
         }
         
-        lineRenderer.SetPosition(lineRenderer.positionCount - 1, dot.Data.GridPosition);
+        lineRenderer.SetPosition(lineRenderer.positionCount++, dot.Data.GridPosition);
     }
 
     private void RemovePoints(List<Dot> _)
     {
         lineRenderer.positionCount = 0;
+        dragLineRenderer.positionCount = 0;
     }
     
     private void OnDrag(int selectedDotsCount, Vector2 position)
     {
-        if (selectedDotsCount != lineRenderer.positionCount - 1)
-            lineRenderer.positionCount = selectedDotsCount + 1;
-        
-        lineRenderer.SetPosition(lineRenderer.positionCount - 1, position);
+        dragLineRenderer.positionCount = 2;
+        dragLineRenderer.SetPosition(0, lineRenderer.GetPosition(lineRenderer.positionCount - 1));
+        dragLineRenderer.SetPosition(1, position);
     }
 }
