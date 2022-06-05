@@ -12,29 +12,43 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     public event Action SelectionStartedEvent;
     public event Action<List<DotData>> SelectionEndedEvent;
     public event Action<DotData> DotSelectedEvent;
-    public event Action<DotData> DotUnselectedEvent;
+    public event Action DotUnselectedEvent;
     public event Action<int, Vector2> SelectionDraggingEvent;
     public event Action<DotData> SquarePreSelectEvent;
     public event Action SquareSuccessEvent;
-
+    
+    // STATE RELATED
     private readonly List<DotData> selectedDots = new();
 
     private DotData lastDotSelected;
+    private DotData hoveredDot;
     
-    private int colorId;
+    private int colorPicked;
 
     private bool squareSelected;
+
+
     
-    // TODO States ASAP
+    private void Awake()
+    {
+        Input.multiTouchEnabled = false;
+    }
+
+    #region drag
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        SelectionStartedEvent?.Invoke();
+    }
+    
     public void OnDrag(PointerEventData eventData)
     {
         if (!eventData.dragging || !eventData.pointerEnter) return;
 
         if (selectedDots.Count > 0)
         {
-            var worldPos = Camera.main.ScreenToWorldPoint(eventData.position);
-            if (Vector2.Distance(lastDotSelected.GridPosition, worldPos) > dragThreshold)
-                SelectionDraggingEvent?.Invoke(selectedDots.Count, worldPos);
+            var worldPosition = Camera.main.ScreenToWorldPoint(eventData.position);
+            if (Vector2.Distance(lastDotSelected.GridPosition, worldPosition) > dragThreshold)
+                SelectionDraggingEvent?.Invoke(selectedDots.Count, worldPosition);
         }
         
         if (eventData.pointerEnter.TryGetComponent<Dot>(out var dot))
@@ -45,9 +59,8 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             {
                 if (selectedDots.Count >= 2 && dotData == selectedDots[^2])
                 {
-                    var unselectedDot = selectedDots[^1];
                     selectedDots.RemoveAt(selectedDots.Count - 1);
-                    DotUnselectedEvent?.Invoke(unselectedDot);
+                    DotUnselectedEvent?.Invoke();
                     lastDotSelected = selectedDots[^1];
 
                     squareSelected = selectedDots.Count != selectedDots.Distinct().Count();
@@ -58,10 +71,10 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             //Connection Rules
             if (selectedDots.Count == 0)
             {
-                colorId = dotData.ColorData.ColorId;
+                colorPicked = dotData.ColorData.ColorId;
                 Select();
             }
-            else if (dotData.ColorData.ColorId == colorId && 
+            else if (dotData.ColorData.ColorId == colorPicked && 
                      dotData.GridIndex.IsAdjacent(lastDotSelected.GridIndex))
             {
                 Select();
@@ -89,13 +102,7 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             }
         }
     }
-
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        inputCollider.transform.position += Vector3.forward;
-        SelectionStartedEvent?.Invoke();
-    }
-
+    
     public void OnEndDrag(PointerEventData eventData)
     {
         inputCollider.transform.position -= Vector3.forward;
@@ -116,4 +123,16 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         
         selectedDots.Clear();
     }
+    #endregion
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        inputCollider.transform.position += Vector3.forward;
+    }
+    
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        inputCollider.transform.position -= Vector3.forward;
+    }
+
 }

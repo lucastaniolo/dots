@@ -5,28 +5,27 @@ public class LineConnector : MonoBehaviour
 {
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private LineRenderer dragLineRenderer;
-    
-    // TODO Receive notifications through GameManager instead
-    [SerializeField] private DotInputHandler inputHandler;
-    
+
     private void OnEnable()
     {
-        inputHandler.DotSelectedEvent += AddLinePoint;
-        inputHandler.SelectionEndedEvent += RemovePoints;
-        inputHandler.SelectionDraggingEvent += OnDrag;
-        inputHandler.DotUnselectedEvent += DisconnectPoint;
-        GameManager.SquareSuccessEvent += RemovePoints;
+        GameStateHandler.DotsSelectedEvent += AddLinePoint;
+        GameStateHandler.DotUnselectedEvent += DisconnectLastPoint;
+
+        GameStateHandler.ClearSelectionEvent += DisconnectAllPoints;
+        
+        GameStateHandler.SelectionDraggingEvent += UpdateDragLine;
     }
 
     private void OnDisable()
     {
-        inputHandler.DotSelectedEvent -= AddLinePoint;
-        inputHandler.SelectionEndedEvent -= RemovePoints;
-        inputHandler.SelectionDraggingEvent -= OnDrag;
-        inputHandler.DotUnselectedEvent -= DisconnectPoint;
-        GameManager.SquareSuccessEvent -= RemovePoints;
+        GameStateHandler.DotsSelectedEvent -= AddLinePoint;
+        GameStateHandler.DotUnselectedEvent -= DisconnectLastPoint;
+        
+        GameStateHandler.ClearSelectionEvent -= DisconnectAllPoints;
+        
+        GameStateHandler.SelectionDraggingEvent -= UpdateDragLine;
     }
-    
+
     private void SetColor(Color color)
     {
         lineRenderer.startColor = color;
@@ -35,30 +34,32 @@ public class LineConnector : MonoBehaviour
         dragLineRenderer.endColor = color;
     }
 
-    private void AddLinePoint(DotData data)
+    private void AddLinePoint(List<DotData> data)
     {
-        if (lineRenderer.positionCount == 0)
-        {
-            SetColor(data.ColorData.Color);
-        }
+        if (data.Count > 1) return;
         
-        lineRenderer.SetPosition(lineRenderer.positionCount++, data.GridPosition);
+        var lastDost = data[0];
+
+        if (lineRenderer.positionCount == 0)
+            SetColor(lastDost.ColorData.Color);
+        
+        lineRenderer.SetPosition(lineRenderer.positionCount++, lastDost.GridPosition);
     }
 
-    private void DisconnectPoint(DotData _)
+    private void DisconnectLastPoint()
     {
         lineRenderer.positionCount--;
     }
     
-    private void RemovePoints(List<DotData> _)
+    private void DisconnectAllPoints(List<DotData> _)
     {
         lineRenderer.positionCount = 0;
         dragLineRenderer.positionCount = 0;
     }
     
-    private void RemovePoints() => RemovePoints(null);
+    private void DisconnectAllPoints() => DisconnectAllPoints(null);
 
-    private void OnDrag(int selectedDotsCount, Vector2 position)
+    private void UpdateDragLine(int selectedDotsCount, Vector2 position)
     {
         dragLineRenderer.positionCount = 2;
         dragLineRenderer.SetPosition(0, lineRenderer.GetPosition(lineRenderer.positionCount - 1));
