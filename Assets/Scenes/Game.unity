@@ -464,7 +464,7 @@ GameObject:
   m_Component:
   - component: {fileID: 965104475}
   - component: {fileID: 965104474}
-  - component: {fileID: 965104473}
+  - component: {fileID: 965104476}
   m_Layer: 0
   m_Name: ShrinkEffects
   m_TagString: Untagged
@@ -472,19 +472,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &965104473
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 965104472}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 486200ba15c84eb2b19ba6fd3f325e76, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  selectionFX: {fileID: 8567977047404408627, guid: 9aa18c7861796f94c9a38b40d3ca0225, type: 3}
 --- !u!210 &965104474
 SortingGroup:
   m_ObjectHideFlags: 0
@@ -511,6 +498,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &965104476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 965104472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bcfa8a52a51434ca8893ed5aaf7d280, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectionFX: {fileID: 8567977047404408627, guid: 9aa18c7861796f94c9a38b40d3ca0225, type: 3}
 --- !u!120 &1142112500 stripped
 LineRenderer:
   m_CorrespondingSourceObject: {fileID: 2048011232546453248, guid: faee39cb19f705142a0dc101125952ba, type: 3}
