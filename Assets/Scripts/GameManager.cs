@@ -25,17 +25,20 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private List<Dot> selectedDots;
+    private List<DotData> selectedDots;
 
-    public static event Action<DotData> DotSelectedEvent;
-    public static event Action<DotData> DotUnselectedEvent;
+    public static event Action<List<DotData>> DotsSelectedEvent;
+    public static event Action<DotData> SquaredDotsEvent;
+    public static event Action SquareSuccessEvent;
+    public static event Action<List<DotData>> ReplenishEvent;
 
     private void OnEnable()
     {
         inputHandler.SelectionStartedEvent += OnStartSelection;
         inputHandler.SelectionEndedEvent += OnEndSelection;
         inputHandler.DotSelectedEvent += OnDotSelected;
-        // inputHandler.DotUnselectedEvent += OnDotUnselected;
+        inputHandler.SquarePreSelectEvent += OnPreSelectSquare;
+        inputHandler.SquareSuccessEvent += SquareFinishedEvent;
     }
     
     private void OnDisable()
@@ -43,7 +46,22 @@ public class GameManager : MonoBehaviour
         inputHandler.SelectionStartedEvent -= OnStartSelection;
         inputHandler.SelectionEndedEvent -= OnEndSelection;
         inputHandler.DotSelectedEvent -= OnDotSelected;
-        // inputHandler.DotUnselectedEvent -= OnDotUnselected;
+        inputHandler.SquarePreSelectEvent -= OnPreSelectSquare;
+        inputHandler.SquareSuccessEvent -= SquareFinishedEvent;
+    }
+
+    private void SquareFinishedEvent()
+    {
+        // SquaredDotsEvent?.Invoke(selectedDots);
+        SquareSuccessEvent?.Invoke();
+        State = States.Replenish;
+    }
+
+    private void OnPreSelectSquare(DotData dotData)
+    {
+        selectedDots = grid.GetDotsByColor(dotData.ColorData);
+        NotifyDotsSelection(selectedDots);
+        SquaredDotsEvent?.Invoke(dotData);
     }
 
     private void OnStartSelection()
@@ -53,25 +71,25 @@ public class GameManager : MonoBehaviour
         State = States.Select;
     }
     
-    private void OnDotUnselected(Dot dot)
+    private void OnDotSelected(DotData data)
     {
-        // DotUnselectedEvent?.Invoke(dot.Data);
+        NotifyDotsSelection(new List<DotData> { data });
     }
 
-    private void OnDotSelected(Dot dot)
+    private void NotifyDotsSelection(List<DotData> data)
     {
-        DotSelectedEvent?.Invoke(dot.Data);
+        DotsSelectedEvent?.Invoke(data);
     }
     
-    private void OnEndSelection(List<Dot> dots)
+    private void OnEndSelection(List<DotData> data)
     {
-        if (dots.Count == 0)
+        if (data.Count == 0)
         {
             State = States.Idle;
         }
         else
         {
-            selectedDots = dots;
+            selectedDots = data;
             State = States.Replenish;
         }
     }
@@ -85,8 +103,10 @@ public class GameManager : MonoBehaviour
             case States.Select:
                 break;
             case States.Replenish:
+                ReplenishEvent?.Invoke(selectedDots);
                 grid.DisableDots(selectedDots);
                 grid.Reorder();
+                grid.Animate();
                 selectedDots = null;
                 break;
             default:

@@ -13,6 +13,7 @@ public class LineConnector : MonoBehaviour
         inputHandler.SelectionEndedEvent += RemovePoints;
         inputHandler.SelectionDraggingEvent += OnDrag;
         inputHandler.DotUnselectedEvent += DisconnectPoint;
+        GameManager.SquareSuccessEvent += RemovePoints;
     }
 
     private void OnDisable()
@@ -21,6 +22,7 @@ public class LineConnector : MonoBehaviour
         inputHandler.SelectionEndedEvent -= RemovePoints;
         inputHandler.SelectionDraggingEvent -= OnDrag;
         inputHandler.DotUnselectedEvent -= DisconnectPoint;
+        GameManager.SquareSuccessEvent -= RemovePoints;
     }
     
     private void SetColor(Color color)
@@ -31,27 +33,29 @@ public class LineConnector : MonoBehaviour
         dragLineRenderer.endColor = color;
     }
 
-    private void AddLinePoint(Dot dot)
+    private void AddLinePoint(DotData data)
     {
         if (lineRenderer.positionCount == 0)
         {
-            SetColor(dot.Data.ColorData.Color);
+            SetColor(data.ColorData.Color);
         }
         
-        lineRenderer.SetPosition(lineRenderer.positionCount++, dot.Data.GridPosition);
+        lineRenderer.SetPosition(lineRenderer.positionCount++, data.GridPosition);
     }
 
-    private void DisconnectPoint(Dot _)
+    private void DisconnectPoint(DotData _)
     {
         lineRenderer.positionCount--;
     }
     
-    private void RemovePoints(List<Dot> _)
+    private void RemovePoints(List<DotData> _)
     {
         lineRenderer.positionCount = 0;
         dragLineRenderer.positionCount = 0;
     }
     
+    private void RemovePoints() => RemovePoints(null);
+
     private void OnDrag(int selectedDotsCount, Vector2 position)
     {
         dragLineRenderer.positionCount = 2;

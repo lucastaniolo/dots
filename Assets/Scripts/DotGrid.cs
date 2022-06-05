@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class DotGrid : MonoBehaviour
@@ -38,22 +39,21 @@ public class DotGrid : MonoBehaviour
         {
             for (var y = 0; y < columns; y++)
             {
-                var position = gridPositions[x, y] = new Vector2(anchorPos.x + x * spacing, anchorPos.y - y * spacing);
+                gridPositions[x, y] = new Vector2(anchorPos.x + x * spacing, anchorPos.y - y * spacing);
                 var dot = Instantiate(dotPrefab, gridContainer);
                 var data = new DotData(GamePalette.Instance.GetRandomColor(), new Vector2Int(x, y), ref gridPositions);
                 
                 dot.SetupData(data);
-                dot.MoveTo(position);
-                
+                dot.MoveTo();
                 Dots[x, y] = dot;
             }
         }
     }
 
-    public void DisableDots(List<Dot> dots)
+    public void DisableDots(List<DotData> data)
     {
-        foreach (var dot in dots)
-            Dots[dot.Data.GridIndex.x, dot.Data.GridIndex.y].Disable();
+        foreach (var d in data)
+            Dots[d.GridIndex.x, d.GridIndex.y].Disable();
     }
     
     public void Reorder()
@@ -72,10 +72,6 @@ public class DotGrid : MonoBehaviour
                     if (!Dots[x, i].IsActive) continue;
                     
                     SwapVerticalDots(x, y, i);
-                    
-                    // // TODO temporary update in real time
-                    Dots[x, y].SnapToGridPosition();
-                    Dots[x, i].SnapToGridPosition();
                     break;
                 }
                 
@@ -92,5 +88,19 @@ public class DotGrid : MonoBehaviour
         
         // Update local grid info
         (Dots[x, a].Data.GridIndex, Dots[x, b].Data.GridIndex) = (Dots[x, b].Data.GridIndex, Dots[x, a].Data.GridIndex);
+    }
+    
+    public List<DotData> GetDotsByColor(ColorData colorData)
+    {
+        return Dots
+            .Cast<Dot>()
+            .Where(dot => dot.Data.ColorData.ColorId == colorData.ColorId)
+            .Select(d => d.Data).ToList();
+    }
+
+    public void Animate()
+    {
+        foreach (var dot in Dots)
+            dot.MoveTo();
     }
 }

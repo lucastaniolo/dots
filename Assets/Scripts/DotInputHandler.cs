@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -9,17 +10,22 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     [SerializeField] private float dragThreshold;
 
     public event Action SelectionStartedEvent;
-    public event Action<List<Dot>> SelectionEndedEvent;
-    public event Action<Dot> DotSelectedEvent;
-    public event Action<Dot> DotUnselectedEvent;
+    public event Action<List<DotData>> SelectionEndedEvent;
+    public event Action<DotData> DotSelectedEvent;
+    public event Action<DotData> DotUnselectedEvent;
     public event Action<int, Vector2> SelectionDraggingEvent;
+    public event Action<DotData> SquarePreSelectEvent;
+    public event Action SquareSuccessEvent;
 
-    private readonly List<Dot> selectedDots = new();
+    private readonly List<DotData> selectedDots = new();
 
-    private Dot lastDotSelected;
+    private DotData lastDotSelected;
     
     private int colorId;
+
+    private bool squareSelected;
     
+    // TODO States ASAP
     public void OnDrag(PointerEventData eventData)
     {
         if (!eventData.dragging || !eventData.pointerEnter) return;
@@ -27,38 +33,57 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (selectedDots.Count > 0)
         {
             var worldPos = Camera.main.ScreenToWorldPoint(eventData.position);
-            if (Vector2.Distance(lastDotSelected.Data.GridPosition, worldPos) > dragThreshold)
+            if (Vector2.Distance(lastDotSelected.GridPosition, worldPos) > dragThreshold)
                 SelectionDraggingEvent?.Invoke(selectedDots.Count, worldPos);
         }
         
         if (eventData.pointerEnter.TryGetComponent<Dot>(out var dot))
         {
-            if (selectedDots.Contains(dot))
+            var dotData = dot.Data;
+            
+            if (selectedDots.Contains(dotData))
             {
-                if (selectedDots.Count <= 1 || selectedDots[^2] != dot) return;
+                if (selectedDots.Count >= 2 && dotData == selectedDots[^2])
+                {
+                    var unselectedDot = selectedDots[^1];
+                    selectedDots.RemoveAt(selectedDots.Count - 1);
+                    DotUnselectedEvent?.Invoke(unselectedDot);
+                    lastDotSelected = selectedDots[^1];
 
-                var unselectedDot = selectedDots[^1];
-                selectedDots.Remove(unselectedDot);
-                DotUnselectedEvent?.Invoke(unselectedDot);
-                lastDotSelected = selectedDots[^1];
-                return;
+                    squareSelected = selectedDots.Count != selectedDots.Distinct().Count();
+                    return;
+                }
             }
 
             //Connection Rules
             if (selectedDots.Count == 0)
             {
-                colorId = dot.Data.ColorData.ColorId;
+                colorId = dotData.ColorData.ColorId;
                 Select();
             }
-            else if (dot.Data.ColorData.ColorId == colorId && 
-                     dot.Data.GridIndex.IsAdjacent(lastDotSelected.Data.GridIndex))
+            else if (dotData.ColorData.ColorId == colorId && 
+                     dotData.GridIndex.IsAdjacent(lastDotSelected.GridIndex))
             {
                 Select();
             }
 
             void Select()
             {
-                lastDotSelected = dot;
+                if (squareSelected &&
+                    dotData.GridIndex.IsAdjacent(lastDotSelected.GridIndex) &&
+                    selectedDots.Contains(dotData))
+                    return;
+                
+                // Validate SQUARE mechanic
+                if (selectedDots.Contains(dotData) &&
+                    selectedDots.Count >= 2 &&
+                    dotData != selectedDots[^2])
+                {
+                    SquarePreSelectEvent?.Invoke(dotData);
+                    squareSelected = true;
+                }
+                
+                lastDotSelected = dotData;
                 selectedDots.Add(lastDotSelected);
                 DotSelectedEvent?.Invoke(lastDotSelected);
             }
@@ -74,7 +99,21 @@ public class DotInputHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     public void OnEndDrag(PointerEventData eventData)
     {
         inputCollider.transform.position -= Vector3.forward;
-        SelectionEndedEvent?.Invoke(selectedDots);
+
+        if (squareSelected)
+        {
+            SquareSuccessEvent?.Invoke();
+            squareSelected = false;
+        }
+        else
+        {
+            // Single dot selection is not a correct move
+            if (selectedDots.Count == 1)
+                selectedDots.Clear();
+
+            SelectionEndedEvent?.Invoke(selectedDots);
+        }
+        
         selectedDots.Clear();
     }
 }
