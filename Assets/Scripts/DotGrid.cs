@@ -16,6 +16,7 @@ public class DotGrid : MonoBehaviour
     // TODO update camera size based on grid size
     [SerializeField] private Transform anchor;
 
+    // TODO Maybe extract Dot references from this class
     private Dot[,] Dots { get; set; }
     
     private Vector2[,] gridPositions;
@@ -44,7 +45,7 @@ public class DotGrid : MonoBehaviour
                 var data = new DotData(GamePalette.Instance.GetRandomColor(), new Vector2Int(x, y), ref gridPositions);
                 
                 dot.SetupData(data);
-                dot.MoveTo();
+                dot.Drop();
                 Dots[x, y] = dot;
             }
         }
@@ -92,15 +93,16 @@ public class DotGrid : MonoBehaviour
     
     public List<DotData> GetDotsByColor(ColorData colorData)
     {
+        // TODO Cache DotData collection
         return Dots
             .Cast<Dot>()
             .Where(dot => dot.Data.ColorData.ColorId == colorData.ColorId)
             .Select(d => d.Data).ToList();
     }
 
-    public void Animate()
+    public void AnimateDroppingDots()
     {
         foreach (var dot in Dots)
-            dot.MoveTo();
+            dot.Drop();
     }
 }

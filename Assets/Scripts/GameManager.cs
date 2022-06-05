@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
         Replenish
     }
 
+    // TODO Improve states
     private States state;
     public States State
     {
@@ -106,7 +107,7 @@ public class GameManager : MonoBehaviour
                 ReplenishEvent?.Invoke(selectedDots);
                 grid.DisableDots(selectedDots);
                 grid.Reorder();
-                grid.Animate();
+                grid.AnimateDroppingDots();
                 selectedDots = null;
                 break;
             default:

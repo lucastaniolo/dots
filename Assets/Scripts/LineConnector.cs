@@ -5,6 +5,8 @@ public class LineConnector : MonoBehaviour
 {
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private LineRenderer dragLineRenderer;
+    
+    // TODO Receive notifications through GameManager instead
     [SerializeField] private DotInputHandler inputHandler;
     
     private void OnEnable()

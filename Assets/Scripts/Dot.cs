@@ -10,8 +10,6 @@ public class Dot : MonoBehaviour
 
     public bool IsActive => spriteRenderer.enabled;
 
-    private bool reusing;
-
     private readonly Dictionary<int, float> delayByGridY = new()
     {
         { 0, 0.18f },
@@ -29,14 +27,12 @@ public class Dot : MonoBehaviour
         transform.localPosition = Data.GridPosition + Vector2.up * 15;
     }
     
-    public void MoveTo()
+    public void Drop()
     {
         transform.DOLocalMoveY(Data.GridPosition.y, 0.5f)
             .SetEase(Ease.OutBounce)
             .SetDelay(delayByGridY[Data.GridIndex.y])
             .OnComplete(SnapToGridPosition);
-
-        reusing = false;
     }
 
     public void SnapToGridPosition()
@@ -55,7 +51,6 @@ public class Dot : MonoBehaviour
         spriteRenderer.color = Data.ColorData.Color;
         spriteRenderer.enabled = true;
 
-        transform.localPosition = Data.GridPosition + Vector2.up * Camera.main.orthographicSize;
-        reusing = true;
+        transform.localPosition = Data.GridPosition + Vector2.up * 6;
     }
 }
