@@ -28,13 +28,14 @@ public class GameManager : MonoBehaviour
     private List<Dot> selectedDots;
 
     public static event Action<DotData> DotSelectedEvent;
+    public static event Action<DotData> DotUnselectedEvent;
 
     private void OnEnable()
     {
         inputHandler.SelectionStartedEvent += OnStartSelection;
         inputHandler.SelectionEndedEvent += OnEndSelection;
         inputHandler.DotSelectedEvent += OnDotSelected;
-        inputHandler.DotUnselectedEvent += OnDotUnselected;
+        // inputHandler.DotUnselectedEvent += OnDotUnselected;
     }
     
     private void OnDisable()
@@ -42,7 +43,7 @@ public class GameManager : MonoBehaviour
         inputHandler.SelectionStartedEvent -= OnStartSelection;
         inputHandler.SelectionEndedEvent -= OnEndSelection;
         inputHandler.DotSelectedEvent -= OnDotSelected;
-        inputHandler.DotUnselectedEvent -= OnDotUnselected;
+        // inputHandler.DotUnselectedEvent -= OnDotUnselected;
     }
 
     private void OnStartSelection()
@@ -54,7 +55,7 @@ public class GameManager : MonoBehaviour
     
     private void OnDotUnselected(Dot dot)
     {
-        
+        // DotUnselectedEvent?.Invoke(dot.Data);
     }
 
     private void OnDotSelected(Dot dot)

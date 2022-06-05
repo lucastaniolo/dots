@@ -12,13 +12,15 @@ public class LineConnector : MonoBehaviour
         inputHandler.DotSelectedEvent += AddLinePoint;
         inputHandler.SelectionEndedEvent += RemovePoints;
         inputHandler.SelectionDraggingEvent += OnDrag;
+        inputHandler.DotUnselectedEvent += DisconnectPoint;
     }
-    
+
     private void OnDisable()
     {
         inputHandler.DotSelectedEvent -= AddLinePoint;
         inputHandler.SelectionEndedEvent -= RemovePoints;
         inputHandler.SelectionDraggingEvent -= OnDrag;
+        inputHandler.DotUnselectedEvent -= DisconnectPoint;
     }
     
     private void SetColor(Color color)
@@ -39,6 +41,11 @@ public class LineConnector : MonoBehaviour
         lineRenderer.SetPosition(lineRenderer.positionCount++, dot.Data.GridPosition);
     }
 
+    private void DisconnectPoint(Dot _)
+    {
+        lineRenderer.positionCount--;
+    }
+    
     private void RemovePoints(List<Dot> _)
     {
         lineRenderer.positionCount = 0;
