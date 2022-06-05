@@ -1,21 +1,35 @@
 ﻿using UnityEngine;
+using UnityEngine.Pool;
 
 public class SelectionViewHandler : MonoBehaviour
 {
     [SerializeField] private SelectionEffect selectionFX;
 
+    private IObjectPool<SelectionEffect> pool;
+
+    private void Start()
+    {
+        pool = new ObjectPool<SelectionEffect>(
+            () => Instantiate(selectionFX, transform),
+            fx => { fx.gameObject.SetActive(true); },
+            fx => { fx.gameObject.SetActive(false); },
+            fx => { Destroy(fx.gameObject); },
+            false);
+    }
+
     private void OnEnable()
     {
-        GameManager.DotSelectedEvent += CreateEffect;
+        GameManager.DotSelectedEvent += PlayEffect;
     }
 
     private void OnDisable()
     {
-        GameManager.DotSelectedEvent -= CreateEffect;
+        GameManager.DotSelectedEvent -= PlayEffect;
     }
 
-    private void CreateEffect(DotData data)
+    private void PlayEffect(DotData data)
     {
-        Instantiate(selectionFX, data.GridPosition, Quaternion.identity).SetupView(data);
+        var fx = pool.Get();
+        fx.SetupView(data, () => pool.Release(fx));
     }
 }
