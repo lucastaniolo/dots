@@ -26,6 +26,7 @@ public class SquaredState : IGameState
 
             if (!stateHandler.IsSquareActive())
             {
+                stateHandler.CancelSquare();
                 stateHandler.ClearSquaredDots();
                 stateHandler.ChangeState(new ConnectingState());
                 return;

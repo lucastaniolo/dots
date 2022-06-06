@@ -17,6 +17,7 @@ public class GameStateHandler : MonoBehaviour
     public static event Action<ColorData> SquarePreSelectionEvent;
     public static event Action<List<DotData>> ReplenishEvent;
     public static event Action<int, Vector2> SelectionDraggingEvent;
+    public static event Action SquareCanceled;
 
     public static event Action DotUnselectedEvent;
     public static event Action ClearSelectionEvent;
@@ -43,6 +44,8 @@ public class GameStateHandler : MonoBehaviour
 
     private void NotifySelectionCleared() => ClearSelectionEvent?.Invoke();
 
+    private void NotifySquareCanceled() => SquareCanceled?.Invoke();
+    
     #endregion
 
     #region Selection methods
@@ -65,6 +68,12 @@ public class GameStateHandler : MonoBehaviour
     {
         squaredDots = grid.GetDotsByColor(colorPicked);
         NotifySquarePreSelection();
+    }
+    
+    public void CancelSquare()
+    {
+        NotifySquareCanceled();
+        ClearSquaredDots();
     }
 
     public void ResolveSelection(bool success)
